@@ -1,0 +1,81 @@
+on:
+  push:
+    branches:
+      - "master"
+    tags:
+      - "v*"
+
+env:
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  release:
+    name: release
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - run: |
+          sudo apt-get update -y
+          sudo apt-get install -y gcc-mingw-w64-x86-64
+
+      - uses: actions-rust-lang/setup-rust-toolchain@v2
+        with:
+          toolchain: stable
+          target: x86_64-pc-windows-gnu
+
+      - name: cache dependencies
+        uses: Swatinem/rust-cache@v2.9.2
+
+      - name: clippy check
+        uses: clechasseur/rs-clippy-check@v6.1.0
+        with:
+          args: --all-features
+
+      - name: install cargo-license
+        uses: clechasseur/rs-cargo@v5.1.0
+        with:
+          command: install
+          args: cargo-license
+
+      - uses: clechasseur/rs-cargo@v5.1.0
+        with:
+          command: build
+          args: --release --target x86_64-pc-windows-gnu
+
+      - run: |
+          mkdir pass-wine-fix
+          cargo license \
+            --authors \
+            --do-not-bundle \
+            --avoid-dev-deps \
+            --avoid-build-deps \
+            --filter-platform x86_64-pc-windows-gnu \
+              > pass-wine-fix/CREDITS
+          VERSION_NAME=${GITHUB_REF##*/}
+          if [[ $VERSION_NAME == "master" ]]; then
+              VERSION_NAME=$(git rev-parse --short HEAD)
+          elif [[ ${VERSION_NAME:0:1} == "v" ]]; then
+              VERSION_NAME=${VERSION_NAME:1}
+          fi
+          echo "$VERSION_NAME" > pass-wine-fix/VERSION.txt
+          cp LICENSE README.md pass-wine-fix/
+          cp target/x86_64-pc-windows-gnu/release/pass-wine-fix.exe pass-wine-fix/
+          zip -r pass-wine-fix.zip pass-wine-fix
+
+      - name: pre-release
+        uses: softprops/action-gh-release@v3.0.3
+        if: "! startsWith(github.ref, 'refs/tags/')"
+        with:
+          tag_name: "latest"
+          prerelease: true
+          name: "Development Build"
+          files: |
+            pass-wine-fix.zip
+
+      - name: tagged-release
+        uses: softprops/action-gh-release@v3.0.3
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            pass-wine-fix.zip

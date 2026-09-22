@@ -1,0 +1,7 @@
+[package]
+name = "pass-wine-fix"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+winsafe = { version = "0.0.29", features = ["user"] }

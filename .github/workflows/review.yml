@@ -1,0 +1,38 @@
+name: Review
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - '.github/workflows/review.yml'
+
+
+env:
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  rust:
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - run: |
+          sudo apt-get update -y
+          sudo apt-get install -y gcc-mingw-w64-x86-64
+
+      - uses: actions-rust-lang/setup-rust-toolchain@v2
+        with:
+          toolchain: stable
+          components: clippy
+          override: true
+          target: x86_64-pc-windows-gnu
+
+      - name: cache dependencies
+        uses: Swatinem/rust-cache@v2.9.2
+
+      - name: clippy check
+        uses: clechasseur/rs-clippy-check@v6.1.0
+        with:
+          args: --all-features
