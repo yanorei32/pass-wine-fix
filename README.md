@@ -10,3 +10,8 @@ Wine上で[PasS](http://uaubn.g2.xrea.com/pass/)起動中にこのソフトウ�
 ## After
 <img width="465" height="422" alt="image" src="https://github.com/user-attachments/assets/1012e6b7-fec2-48c7-bce9-351ff8d102bc" />
 
+
+## 動作確認済み環境
+- PasS 1.5.2
+- wine-11.17
+- Linux 7.2.4-arch1-2
