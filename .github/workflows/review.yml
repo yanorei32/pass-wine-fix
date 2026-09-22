@@ -22,12 +22,17 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install -y gcc-mingw-w64-x86-64
 
-      - uses: actions-rust-lang/setup-rust-toolchain@v2
+      - name: Get Rust toolchain
+        id: toolchain
+        run: |
+          awk -F'[ ="]+' '$1 == "channel" { print "toolchain=" $2 }' rust-toolchain >> "$GITHUB_OUTPUT"
+
+      - name: install clippy
+        uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
+          toolchain: ${{ steps.toolchain.outputs.toolchain }}
           components: clippy
-          override: true
-          target: x86_64-pc-windows-gnu
+          targets: x86_64-pc-windows-gnu
 
       - name: cache dependencies
         uses: Swatinem/rust-cache@v2.9.2
