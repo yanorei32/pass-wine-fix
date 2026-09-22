@@ -41,7 +41,12 @@ fn is_pass_window(hwnd: &HWND) -> bool {
     true
 }
 
-fn recursive_find_subwindow(hwnd: HWND, depth: usize, is_child_of_parts_selection: bool, resize_applied: &mut bool) {
+fn recursive_find_subwindow(
+    hwnd: HWND,
+    depth: usize,
+    is_child_of_parts_selection: bool,
+    resize_applied: &mut bool,
+) {
     let mut nth = 0;
 
     hwnd.EnumChildWindows(|hwnd: HWND| {
@@ -57,11 +62,11 @@ fn recursive_find_subwindow(hwnd: HWND, depth: usize, is_child_of_parts_selectio
 
         let mut is_child_of_parts_selection = false;
 
-        if let Ok(text) = hwnd.GetWindowText() {
-            if text == "部品選択" {
-                println!("  Parts selection component found");
-                is_child_of_parts_selection = true;
-            }
+        if let Ok(text) = hwnd.GetWindowText()
+            && text == "部品選択"
+        {
+            println!("  Parts selection component found");
+            is_child_of_parts_selection = true;
         }
 
         recursive_find_subwindow(hwnd, depth + 1, is_child_of_parts_selection, resize_applied);
@@ -86,12 +91,12 @@ fn main() {
     })
     .unwrap();
 
-    if pass_window_found == false {
+    if !pass_window_found {
         println!("ERROR: Failed to find PasS window");
         std::process::exit(1);
     }
 
-    if resize_applied == false {
+    if !resize_applied {
         println!("ERROR: Failed to resize target component");
         std::process::exit(1);
     }
